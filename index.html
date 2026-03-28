@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CarScout v3.02</title>
+<style>
+:root{--bg:#0f172a;--card:#1e293b;--border:#334155;--text:#e2e8f0;--muted:#94a3b8;--dim:#64748b;--dark:#475569;--accent:#3b82f6;--accent2:#8b5cf6;--green:#4ade80;--input:#0f172a}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;min-height:100vh}
+a{color:inherit;text-decoration:none}
+.wrap{max-width:1100px;margin:0 auto;padding:16px 20px 40px}
+header{border-bottom:1px solid var(--border);padding:18px 20px}
+.hdr{max-width:1100px;margin:0 auto;display:flex;align-items:center;justify-content:space-between}
+h1{font-size:22px;font-weight:800;background:linear-gradient(135deg,#60a5fa,#a78bfa);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.sub{font-size:12px;color:var(--dark);margin-top:2px}
+.ver{font-size:10px;color:#334155;font-family:monospace}
+.card{background:var(--card);border-radius:12px;padding:16px;border:1px solid var(--border);margin-bottom:14px}
+.fields{display:flex;flex-wrap:wrap;gap:10px}
+.field{flex:1 1 120px;min-width:100px}
+.field.wide{flex:2 1 260px;min-width:200px}
+.field label{color:var(--muted);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;display:block}
+.field input,.field select{background:var(--input);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:8px 10px;font-size:13px;width:100%;outline:none;transition:border-color .15s}
+.field input:focus,.field select:focus{border-color:var(--accent)}
+.btn-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.btn{padding:10px 20px;font-size:14px;font-weight:600;border:none;border-radius:8px;cursor:pointer;transition:all .15s}
+.btn-primary{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;box-shadow:0 4px 16px rgba(59,130,246,.25);flex:1}
+.btn-primary:hover{box-shadow:0 6px 24px rgba(59,130,246,.35)}
+.btn-primary:active{transform:scale(.98)}
+.btn-secondary{background:var(--border);color:var(--text);flex:0 0 auto}
+.btn-secondary:hover{background:#475569}
+.btn:disabled{opacity:.4;cursor:default}
+.kw-pills{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px}
+.kw-pill{background:var(--accent)22;border:1px solid var(--accent);border-radius:14px;padding:2px 10px;font-size:11px;color:#60a5fa;cursor:pointer;transition:all .15s}
+.kw-pill:hover{background:var(--accent);color:#fff}
+
+/* Source checkboxes */
+.sources-section{margin-bottom:14px}
+.sources-section h3{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--dim);margin-bottom:8px}
+.source-grid{display:flex;flex-wrap:wrap;gap:6px}
+.source-chip{display:flex;align-items:center;gap:5px;padding:5px 12px;border-radius:8px;border:1px solid var(--border);background:var(--card);cursor:pointer;font-size:12px;font-weight:500;transition:all .15s;user-select:none}
+.source-chip:hover{border-color:var(--dim)}
+.source-chip.checked{border-color:var(--sc);background:color-mix(in srgb, var(--sc) 12%, transparent)}
+.source-chip.checked .sname{color:var(--sc)}
+.source-chip input{display:none}
+.source-chip .sdot{width:8px;height:8px;border-radius:50%;background:var(--border);transition:background .15s}
+.source-chip.checked .sdot{background:var(--sc)}
+.sname{color:var(--muted);transition:color .15s}
+.source-actions{display:flex;gap:8px;margin-top:8px}
+.source-actions button{background:none;border:none;color:var(--dim);font-size:11px;cursor:pointer;text-decoration:underline}
+.source-actions button:hover{color:var(--muted)}
+.source-links{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.source-links a{border:1px solid var(--border);border-radius:6px;padding:5px 12px;font-size:12px;color:var(--muted);transition:all .15s}
+.source-links a:hover{border-color:var(--accent);color:var(--accent)}
+
+.status{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:14px;min-height:32px}
+.status .count{font-size:14px;color:var(--muted)}
+.status .count b{color:var(--text)}
+.controls{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.controls select{background:var(--card);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:5px 8px;font-size:12px;outline:none}
+.results{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}
+.listing{background:var(--card);border-radius:10px;overflow:hidden;border:1px solid var(--border);display:flex;flex-direction:column;transition:border-color .15s}
+.listing:hover{border-color:#475569}
+.listing.target{border-color:var(--green);border-width:2px}
+.listing .photo{height:200px;overflow:hidden;background:#0f172a}
+.listing .photo img{width:100%;height:100%;object-fit:cover}
+.listing .photo .no-img{display:flex;align-items:center;justify-content:center;height:100%;color:var(--dark);font-size:13px}
+.listing .body{padding:14px;flex:1;display:flex;flex-direction:column}
+.listing .top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:6px}
+.listing .title{font-size:15px;font-weight:700;color:#f1f5f9}
+.listing .trim{font-size:12px;margin-top:2px}
+.listing .trim.hit{color:var(--green);font-weight:600}
+.listing .trim.miss{color:var(--muted)}
+.listing .price{font-size:20px;font-weight:700;color:#60a5fa;white-space:nowrap}
+.listing .specs{display:flex;gap:10px;font-size:12px;color:var(--muted);margin-bottom:8px;flex-wrap:wrap}
+.listing .dealer{font-size:12px;color:var(--dim);margin-top:auto;padding-top:6px}
+.listing .dealer p{margin:1px 0}
+.listing .vin{font-family:monospace;font-size:10px;color:var(--dark)}
+.listing .view-btn{display:block;text-align:center;margin-top:10px;background:var(--accent);color:#fff;padding:8px;border-radius:6px;font-size:13px;font-weight:600;transition:background .15s}
+.listing .view-btn:hover{background:#2563eb}
+.pager{display:flex;justify-content:center;align-items:center;gap:10px;margin-top:20px}
+.pager button{background:var(--card);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:6px 16px;font-size:13px;cursor:pointer}
+.pager button:disabled{opacity:.3;cursor:default}
+.pager span{font-size:13px;color:var(--muted)}
+.loader{text-align:center;padding:60px 20px;color:var(--dim)}
+.loader .spin{width:36px;height:36px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 14px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.empty{text-align:center;padding:60px 20px;color:var(--dim);font-size:14px}
+footer{text-align:center;padding:20px;color:#1e293b;font-size:10px;font-family:monospace}
+</style>
+</head>
+<body>
+<header>
+  <div class="hdr">
+    <div><h1>CarScout</h1><p class="sub">Search &amp; browse used car listings across all dealers</p></div>
+    <span class="ver">v3.02</span>
+  </div>
+</header>
+<div class="wrap">
+  <!-- Search Form -->
+  <div class="card">
+    <div class="fields">
+      <div class="field"><label>Make</label><input id="make" value="Toyota"></div>
+      <div class="field"><label>Model</label><input id="model" value="Tacoma"></div>
+      <div class="field"><label>Year Min</label><input id="yearMin" value="2024"></div>
+      <div class="field"><label>Year Max</label><input id="yearMax" value="2026"></div>
+      <div class="field wide">
+        <label>Keyword (searches trim, description, features)</label>
+        <input id="keyword" value="" placeholder='e.g. "Premium" or "TRD Pro"'>
+        <div class="kw-pills">
+          <span class="kw-pill" onclick="setKW('TRD Pro')">TRD Pro</span>
+          <span class="kw-pill" onclick="setKW('Sport Premium')">Sport Premium</span>
+          <span class="kw-pill" onclick="setKW('Off-Road Premium')">Off-Road Premium</span>
+          <span class="kw-pill" onclick="setKW('Premium')">Premium</span>
+          <span class="kw-pill" onclick="setKW('')">Clear</span>
+        </div>
+      </div>
+      <div class="field"><label>Price Min</label><input id="priceMin" value="" placeholder="$"></div>
+      <div class="field"><label>Price Max</label><input id="priceMax" value="" placeholder="$"></div>
+      <div class="field"><label>Max Miles</label><input id="mileageMax" value="" placeholder="e.g. 30000"></div>
+      <div class="field"><label>Zip Code</label><input id="zip" value="" placeholder="e.g. 32501"></div>
+      <div class="field"><label>Radius (mi)</label><input id="distance" value="150"></div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="searchBtn" onclick="doSearch(1)">Search Listings</button>
+      <button class="btn btn-secondary" onclick="clearForm()">Clear</button>
+    </div>
+  </div>
+
+  <!-- Source Selection -->
+  <div class="card sources-section">
+    <h3>Search These Sites Directly</h3>
+    <div class="source-grid" id="sourceGrid"></div>
+    <div class="source-actions">
+      <button onclick="toggleAllSources(true)">Select All</button>
+      <button onclick="toggleAllSources(false)">Deselect All</button>
+    </div>
+    <div class="source-links" id="sourceLinks" style="margin-top:10px"></div>
+    <button class="btn btn-secondary" style="margin-top:10px;padding:8px 16px;font-size:13px" onclick="openSelected()">Open Selected Sites ↗</button>
+  </div>
+
+  <!-- Status / Controls -->
+  <div class="status" id="status" style="display:none">
+    <div class="count" id="countLabel"></div>
+    <div class="controls">
+      <select id="trimFilter" onchange="applyClientFilters()">
+        <option value="all">All Trims</option>
+      </select>
+      <select id="sortBy" onchange="applyClientFilters()">
+        <option value="price_asc">Price: Low → High</option>
+        <option value="price_desc">Price: High → Low</option>
+        <option value="miles_asc">Mileage: Low → High</option>
+        <option value="year_desc">Year: Newest</option>
+        <option value="dist_asc">Distance: Nearest</option>
+      </select>
+    </div>
+  </div>
+
+  <div id="output"></div>
+
+  <div class="pager" id="pager" style="display:none">
+    <button onclick="doSearch(currentPage-1)" id="prevBtn">← Prev</button>
+    <span id="pageLabel"></span>
+    <button onclick="doSearch(currentPage+1)" id="nextBtn">Next →</button>
+  </div>
+</div>
+<footer>CarScout v3.02</footer>
+
+<script>
+const API_BASE = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
+  ? "http://localhost:8888/api/listings" : "/api/listings";
+
+const FIELDS = ["make","model","yearMin","yearMax","keyword","priceMin","priceMax","mileageMax","zip","distance"];
+const TARGET_TRIMS = ["trd pro","sport premium","off-road premium","off road premium"];
+const enc = s => encodeURIComponent(s || "");
+const low = s => (s || "").toLowerCase().replace(/\s+/g, "-");
+const g = k => document.getElementById(k).value.trim();
+const fmt$ = v => v ? "$" + Number(v).toLocaleString() : "N/A";
+const fmtMi = v => v ? Number(v).toLocaleString() + " mi" : "N/A";
+
+let allResults = [], currentPage = 1, totalResults = 0;
+const PER_PAGE = 24;
+
+/* ── Sites ── */
+const SITES = [
+  { id:"autotrader", name:"AutoTrader", color:"#E8364A", checked:true,
+    build:v=>{ let u=`https://www.autotrader.com/cars-for-sale/all-cars/${low(v.make)}/${low(v.model)}${v.zip?"/"+v.zip:""}`;
+      const q=[`searchRadius=${v.distance||100}`]; if(v.yearMin)q.push(`startYear=${v.yearMin}`);if(v.yearMax)q.push(`endYear=${v.yearMax}`);
+      if(v.priceMax)q.push(`maxPrice=${v.priceMax}`);if(v.priceMin)q.push(`minPrice=${v.priceMin}`);if(v.mileageMax)q.push(`maxMileage=${v.mileageMax}`);
+      return u+"?"+q.join("&")} },
+  { id:"cargurus", name:"CarGurus", color:"#6C3EC1", checked:true,
+    build:v=>{ const q=[`showNegotiable=true`,`sortDir=ASC`,`sortType=PRICE`];
+      if(v.yearMin)q.push(`startYear=${v.yearMin}`);if(v.yearMax)q.push(`endYear=${v.yearMax}`);
+      if(v.priceMax)q.push(`maxPrice=${v.priceMax}`);if(v.priceMin)q.push(`minPrice=${v.priceMin}`);
+      if(v.mileageMax)q.push(`maxMileage=${v.mileageMax}`);if(v.distance)q.push(`distance=${v.distance}`);if(v.zip)q.push(`zip=${v.zip}`);
+      return`https://www.cargurus.com/Cars/inventorylisting/viewDetailsFilterViewInventoryListing.action?`+q.join("&")} },
+  { id:"carscom", name:"Cars.com", color:"#0070C0", checked:true,
+    build:v=>{ const q=[`stock_type=all`,`makes[]=${enc(v.make)}`,`models[]=${enc(v.make)}-${enc(v.model)}`,`maximum_distance=${v.distance||100}`];
+      if(v.yearMin)q.push(`year_min=${v.yearMin}`);if(v.yearMax)q.push(`year_max=${v.yearMax}`);
+      if(v.priceMax)q.push(`list_price_max=${v.priceMax}`);if(v.priceMin)q.push(`list_price_min=${v.priceMin}`);
+      if(v.mileageMax)q.push(`mileage_max=${v.mileageMax}`);if(v.zip)q.push(`zip=${v.zip}`);
+      return`https://www.cars.com/shopping/results/?`+q.join("&")} },
+  { id:"carvana", name:"Carvana", color:"#00AEF0", checked:true,
+    build:v=>{ let u=`https://www.carvana.com/cars/${low(v.make)}-${low(v.model)}`;const q=[];
+      if(v.yearMin||v.yearMax)q.push(`year=${v.yearMin||""}-${v.yearMax||""}`);
+      if(v.priceMin||v.priceMax)q.push(`price=${v.priceMin||""}-${v.priceMax||""}`);
+      if(v.mileageMax)q.push(`mileage=-${v.mileageMax}`);return q.length?u+"?"+q.join("&"):u} },
+  { id:"carmax", name:"CarMax", color:"#2962FF", checked:true,
+    build:v=>{ let u=`https://www.carmax.com/cars/${low(v.make)}/${low(v.model)}`;const q=[];
+      if(v.yearMin||v.yearMax)q.push(`year=${v.yearMin||""}-${v.yearMax||""}`);
+      if(v.priceMin||v.priceMax)q.push(`price=${v.priceMin||""}-${v.priceMax||""}`);
+      if(v.mileageMax)q.push(`mileage=-${v.mileageMax}`);return q.length?u+"?"+q.join("&"):u} },
+  { id:"truecar", name:"TrueCar", color:"#00897B", checked:true,
+    build:v=>{ let u=`https://www.truecar.com/used-cars-for-sale/listings/${low(v.make)}/${low(v.model)}/`;
+      if(v.yearMin||v.yearMax)u+=`year-${v.yearMin||"2000"}-${v.yearMax||"max"}/`;
+      if(v.priceMin||v.priceMax)u+=`price-${v.priceMin||"0"}-${v.priceMax||"max"}/`;
+      const q=[];if(v.zip)q.push(`searchRadius=${v.distance||100}`);return q.length?u+"?"+q.join("&"):u} },
+  { id:"facebook", name:"Facebook Marketplace", color:"#1877F2", checked:true,
+    build:v=>{ const q=[`minYear=${v.yearMin||""}`,`maxYear=${v.yearMax||""}`,`make=${enc(v.make)}`,`model=${enc(v.model)}`];
+      if(v.priceMax)q.push(`maxPrice=${v.priceMax}`);if(v.priceMin)q.push(`minPrice=${v.priceMin}`);
+      if(v.mileageMax)q.push(`maxMileage=${v.mileageMax}`);
+      return`https://www.facebook.com/marketplace/category/vehicles?`+q.join("&")} },
+  { id:"edmunds", name:"Edmunds", color:"#FF6D00", checked:true,
+    build:v=>{ const q=[`make=${enc(v.make)}`,`model=${enc(v.make)}|${enc(v.model)}`];
+      if(v.yearMin)q.push(`year=${v.yearMin}-${v.yearMax||v.yearMin}`);if(v.zip)q.push(`zip=${v.zip}`);if(v.distance)q.push(`radius=${v.distance}`);
+      return`https://www.edmunds.com/inventory/srp.html?`+q.join("&")} },
+];
+
+function setKW(val) { document.getElementById("keyword").value = val; }
+
+/* ── Source chips ── */
+function renderSources() {
+  const grid = document.getElementById("sourceGrid");
+  grid.innerHTML = SITES.map(s =>
+    `<label class="source-chip${s.checked ? " checked" : ""}" style="--sc:${s.color}" data-id="${s.id}" onclick="setTimeout(updateSourceChips,0)">
+      <input type="checkbox" ${s.checked ? "checked" : ""} onchange="SITES.find(x=>x.id==='${s.id}').checked=this.checked">
+      <span class="sdot"></span><span class="sname">${s.name}</span>
+    </label>`
+  ).join("");
+  updateSourceLinks();
+}
+
+function updateSourceChips() {
+  document.querySelectorAll(".source-chip").forEach(el => {
+    const cb = el.querySelector("input");
+    el.classList.toggle("checked", cb.checked);
+  });
+  updateSourceLinks();
+}
+
+function toggleAllSources(on) {
+  SITES.forEach(s => s.checked = on);
+  document.querySelectorAll(".source-chip input").forEach(cb => cb.checked = on);
+  updateSourceChips();
+}
+
+function getParams() {
+  const v = {};
+  FIELDS.forEach(k => v[k] = g(k));
+  return v;
+}
+
+function updateSourceLinks() {
+  const v = getParams();
+  const selected = SITES.filter(s => s.checked);
+  document.getElementById("sourceLinks").innerHTML = selected.map(s =>
+    `<a href="${s.build(v)}" target="_blank" rel="noopener" style="border-color:${s.color}44;color:${s.color}">${s.name} ↗</a>`
+  ).join("");
+}
+
+function openSelected() {
+  const v = getParams();
+  const selected = SITES.filter(s => s.checked);
+  selected.forEach((s, i) => setTimeout(() => window.open(s.build(v), "_blank"), i * 250));
+}
+
+/* ── API Search ── */
+async function doSearch(page = 1) {
+  const btn = document.getElementById("searchBtn");
+  btn.disabled = true; btn.textContent = "Searching…";
+  document.getElementById("output").innerHTML = `<div class="loader"><div class="spin"></div>Searching dealers…</div>`;
+  document.getElementById("status").style.display = "none";
+  document.getElementById("pager").style.display = "none";
+
+  const params = new URLSearchParams();
+  const make = g("make"), model = g("model"), keyword = g("keyword");
+  if (make) params.set("vehicle.make", make);
+  if (model) params.set("vehicle.model", model);
+  if (keyword) params.set("vehicle.trim", `*${keyword}*`);
+  const yMin = g("yearMin"), yMax = g("yearMax");
+  if (yMin || yMax) params.set("vehicle.year", `${yMin || "2000"}-${yMax || "2030"}`);
+  const pMin = g("priceMin"), pMax = g("priceMax");
+  if (pMin || pMax) params.set("retailListing.price", `${pMin || "1"}-${pMax || "999999"}`);
+  const mi = g("mileageMax");
+  if (mi) params.set("retailListing.miles", `0-${mi}`);
+  const zip = g("zip"), dist = g("distance");
+  if (zip) { params.set("zip", zip); params.set("distance", dist || "150"); }
+  params.set("limit", PER_PAGE);
+  params.set("page", page);
+
+  try {
+    const res = await fetch(`${API_BASE}?${params.toString()}`);
+    if (!res.ok) {
+      const t = await res.text();
+      let msg = `Error ${res.status}`;
+      try { msg = JSON.parse(t).error || msg; } catch {}
+      throw new Error(msg);
+    }
+    const json = await res.json();
+    const listings = Array.isArray(json.data) ? json.data : Array.isArray(json) ? json : [];
+    totalResults = json.total || json.totalCount || listings.length;
+    currentPage = page;
+    allResults = listings;
+
+    const trims = [...new Set(listings.map(l => l?.vehicle?.trim).filter(Boolean))].sort();
+    const tf = document.getElementById("trimFilter");
+    const curVal = tf.value;
+    tf.innerHTML = `<option value="all">All Trims (${listings.length})</option>` +
+      trims.map(t => {
+        const ct = listings.filter(l => l?.vehicle?.trim === t).length;
+        return `<option value="${t}">${t} (${ct})</option>`;
+      }).join("");
+    tf.value = trims.includes(curVal) ? curVal : "all";
+
+    applyClientFilters();
+    updatePager();
+  } catch (err) {
+    document.getElementById("output").innerHTML = `<div class="empty">
+      <p style="color:#f87171;margin-bottom:8px">${err.message}</p>
+      <p>Make sure your Netlify site is deployed with the function and AUTO_DEV_API_KEY env var set.</p>
+    </div>`;
+  } finally {
+    btn.disabled = false; btn.textContent = "Search Listings";
+  }
+}
+
+function applyClientFilters() {
+  const trimVal = document.getElementById("trimFilter").value;
+  const sortVal = document.getElementById("sortBy").value;
+  const keyword = g("keyword").toLowerCase();
+
+  let filtered = [...allResults];
+  if (trimVal !== "all") filtered = filtered.filter(l => (l?.vehicle?.trim || "") === trimVal);
+
+  if (keyword) {
+    filtered = filtered.filter(l => {
+      const hay = [l?.vehicle?.trim, l?.vehicle?.engine, l?.vehicle?.transmission, l?.vehicle?.drivetrain,
+        l?.vehicle?.exteriorColor, l?.vehicle?.interiorColor, l?.vehicle?.bodyStyle,
+        l?.retailListing?.dealerName, l?.retailListing?.description, l?.description,
+        ...(l?.vehicle?.features || [])].filter(Boolean).join(" ").toLowerCase();
+      return hay.includes(keyword);
+    });
+  }
+
+  filtered.sort((a, b) => {
+    const pa = a?.retailListing?.price ?? 999999, pb = b?.retailListing?.price ?? 999999;
+    const ma = a?.retailListing?.miles ?? 999999, mb = b?.retailListing?.miles ?? 999999;
+    const ya = a?.vehicle?.year ?? 0, yb = b?.vehicle?.year ?? 0;
+    const da = a?.retailListing?.distanceMiles ?? 999999, db = b?.retailListing?.distanceMiles ?? 999999;
+    switch (sortVal) {
+      case "price_asc": return pa - pb;
+      case "price_desc": return pb - pa;
+      case "miles_asc": return ma - mb;
+      case "year_desc": return yb - ya;
+      case "dist_asc": return da - db;
+      default: return 0;
+    }
+  });
+
+  document.getElementById("status").style.display = "flex";
+  document.getElementById("countLabel").innerHTML = `<b>${totalResults.toLocaleString()}</b> listing${totalResults !== 1 ? "s" : ""} found · showing <b>${filtered.length}</b> on this page`;
+  renderCards(filtered);
+}
+
+function renderCards(listings) {
+  if (!listings.length) {
+    document.getElementById("output").innerHTML = `<div class="empty">No listings match your filters. Try broadening your search or clearing the keyword.</div>`;
+    return;
+  }
+
+  document.getElementById("output").innerHTML = `<div class="results">${listings.map(l => {
+    const v = l?.vehicle || {}, r = l?.retailListing || {};
+    const price = r.price || l?.price;
+    const miles = r.miles || l?.mileage;
+    const trimLower = (v.trim || "").toLowerCase();
+    const isTarget = TARGET_TRIMS.some(t => trimLower.includes(t));
+    const dealer = r.dealerName || l?.dealer?.name || "";
+    const city = r.city || r.dealerCity || "";
+    const state = r.state || r.dealerState || "";
+    const dist = r.distanceMiles;
+    const photos = l?.media?.photos || l?.photos || [];
+    const mainPhoto = photos[0]?.url || photos[0] || null;
+    const vin = l?.vin || "";
+    const listingUrl = r.url || r.listingUrl || l?.url || "";
+
+    return `<div class="listing${isTarget ? " target" : ""}">
+      <div class="photo">
+        ${mainPhoto
+          ? `<img src="${mainPhoto}" alt="${v.year} ${v.make} ${v.model}" loading="lazy" onerror="this.parentElement.innerHTML='<div class=no-img>No photo</div>'">`
+          : `<div class="no-img">No photo available</div>`}
+      </div>
+      <div class="body">
+        <div class="top">
+          <div>
+            <div class="title">${v.year || ""} ${v.make || ""} ${v.model || ""}</div>
+            <div class="trim ${isTarget ? "hit" : "miss"}">${v.trim || "—"}</div>
+          </div>
+          <div class="price">${fmt$(price)}</div>
+        </div>
+        <div class="specs">
+          <span>${fmtMi(miles)}</span>
+          ${v.drivetrain ? `<span>${v.drivetrain}</span>` : ""}
+          ${v.engine ? `<span>${v.engine}</span>` : ""}
+          ${v.transmission ? `<span>${v.transmission}</span>` : ""}
+          ${v.exteriorColor ? `<span>${v.exteriorColor}</span>` : ""}
+          ${dist != null ? `<span>${Math.round(dist)} mi away</span>` : ""}
+        </div>
+        <div class="dealer">
+          ${dealer ? `<p>${dealer}</p>` : ""}
+          ${city || state ? `<p>${[city, state].filter(Boolean).join(", ")}</p>` : ""}
+          ${vin ? `<p class="vin">VIN: ${vin}</p>` : ""}
+        </div>
+        ${listingUrl ? `<a class="view-btn" href="${listingUrl}" target="_blank" rel="noopener">View Listing ↗</a>` : ""}
+      </div>
+    </div>`;
+  }).join("")}</div>`;
+}
+
+function updatePager() {
+  const totalPages = Math.ceil(totalResults / PER_PAGE);
+  if (totalPages <= 1) { document.getElementById("pager").style.display = "none"; return; }
+  document.getElementById("pager").style.display = "flex";
+  document.getElementById("prevBtn").disabled = currentPage <= 1;
+  document.getElementById("nextBtn").disabled = currentPage >= totalPages;
+  document.getElementById("pageLabel").textContent = `Page ${currentPage} of ${totalPages}`;
+}
+
+function clearForm() {
+  FIELDS.forEach(k => document.getElementById(k).value = "");
+  document.getElementById("make").value = "Toyota";
+  document.getElementById("model").value = "Tacoma";
+  document.getElementById("yearMin").value = "2024";
+  document.getElementById("yearMax").value = "2026";
+  document.getElementById("distance").value = "150";
+  document.getElementById("output").innerHTML = "";
+  document.getElementById("status").style.display = "none";
+  document.getElementById("pager").style.display = "none";
+}
+
+/* Enter key to search */
+FIELDS.forEach(k => {
+  document.getElementById(k).addEventListener("keydown", e => { if (e.key === "Enter") doSearch(1); });
+});
+
+/* Update source links when fields change */
+FIELDS.forEach(k => {
+  document.getElementById(k).addEventListener("input", updateSourceLinks);
+});
+
+/* Init */
+renderSources();
+</script>
+</body>
+</html>
