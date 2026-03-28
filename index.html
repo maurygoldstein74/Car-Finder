@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CarScout v3.08</title>
+<title>CarScout v3.09</title>
 <style>
 :root{--bg:#0f172a;--card:#1e293b;--border:#334155;--text:#e2e8f0;--muted:#94a3b8;--dim:#64748b;--dark:#475569;--accent:#3b82f6;--accent2:#8b5cf6;--green:#4ade80;--input:#0f172a;--red:#f87171}
 *{margin:0;padding:0;box-sizing:border-box}
@@ -111,7 +111,7 @@ footer{text-align:center;padding:20px;color:#1e293b;font-size:10px;font-family:m
 <header>
   <div class="hdr">
     <div><h1>CarScout</h1><p class="sub">Search &amp; browse used car listings across all dealers</p></div>
-    <div><span class="ver">v3.08</span><div class="api-ctr">Auto.dev: <b id="adCount">0</b> · Claude: <b id="clCount">0</b></div></div>
+    <div><span class="ver">v3.09</span><div class="api-ctr">Auto.dev: <b id="adCount">0</b> · Claude: <b id="clCount">0</b></div></div>
   </div>
 </header>
 <div class="wrap">
@@ -125,6 +125,7 @@ footer{text-align:center;padding:20px;color:#1e293b;font-size:10px;font-family:m
       <div class="field"><label>Year Max</label><input id="yearMax" value="2026"></div>
       <div class="field"><label>Price Min</label><input id="priceMin" value="" placeholder="$"></div>
       <div class="field"><label>Price Max</label><input id="priceMax" value="" placeholder="$"></div>
+      <div class="field"><label>Min Miles</label><input id="mileageMin" value="" placeholder="e.g. 1000"></div>
       <div class="field"><label>Max Miles</label><input id="mileageMax" value="" placeholder="e.g. 30000"></div>
       <div class="field"><label>Zip Code</label><input id="zip" value="32514"></div>
       <div class="field"><label>Radius (mi)</label><input id="distance" value="250"></div>
@@ -181,11 +182,11 @@ footer{text-align:center;padding:20px;color:#1e293b;font-size:10px;font-family:m
 
   <div id="output"></div>
 </div>
-<footer>CarScout v3.08</footer>
+<footer>CarScout v3.09</footer>
 
 <script>
 const API=location.hostname==="localhost"||location.hostname==="127.0.0.1"?"http://localhost:8888":"";
-const FIELDS=["make","model","yearMin","yearMax","priceMin","priceMax","mileageMax","zip","distance"];
+const FIELDS=["make","model","yearMin","yearMax","priceMin","priceMax","mileageMin","mileageMax","zip","distance"];
 const TGT=["trd pro","sport premium","off-road premium","off road premium","limited","trailhunter"];
 const enc=s=>encodeURIComponent(s||""),low=s=>(s||"").toLowerCase().replace(/\s+/g,"-");
 const g=k=>document.getElementById(k).value.trim();
@@ -205,7 +206,8 @@ function bp(){
   if(y1||y2)p.set("vehicle.year",`${y1||"2000"}-${y2||"2030"}`);
   const p1=g("priceMin"),p2=g("priceMax");
   if(p1||p2)p.set("retailListing.price",`${p1||"1"}-${p2||"999999"}`);
-  const mi=g("mileageMax");if(mi)p.set("retailListing.miles",`0-${mi}`);
+  const mi=g("mileageMax"),miMin=g("mileageMin");
+  if(mi||miMin)p.set("retailListing.miles",`${miMin||"0"}-${mi||"999999"}`);
   const z=g("zip"),d=g("distance");
   if(z){p.set("zip",z);p.set("distance",d||"250")}
   p.set("limit","100");return p;
