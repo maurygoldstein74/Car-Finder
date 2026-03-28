@@ -1,0 +1,14 @@
+[build]
+  publish = "."
+
+[[edge_functions]]
+  function = "listings"
+  path = "/api/listings"
+
+[[edge_functions]]
+  function = "listings"
+  path = "/api/photo/*"
+
+[[edge_functions]]
+  function = "listings"
+  path = "/api/trims"

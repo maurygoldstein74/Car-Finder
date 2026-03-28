@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CarScout v3.08</title>
+<style>
+:root{--bg:#0f172a;--card:#1e293b;--border:#334155;--text:#e2e8f0;--muted:#94a3b8;--dim:#64748b;--dark:#475569;--accent:#3b82f6;--accent2:#8b5cf6;--green:#4ade80;--input:#0f172a;--red:#f87171}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;min-height:100vh}
+a{color:inherit;text-decoration:none}
+.wrap{max-width:1100px;margin:0 auto;padding:16px 20px 40px}
+header{border-bottom:1px solid var(--border);padding:18px 20px}
+.hdr{max-width:1100px;margin:0 auto;display:flex;align-items:center;justify-content:space-between}
+h1{font-size:22px;font-weight:800;background:linear-gradient(135deg,#60a5fa,#a78bfa);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.sub{font-size:12px;color:var(--dark);margin-top:2px}
+.ver{font-size:10px;color:#334155;font-family:monospace}
+.api-ctr{font-size:10px;color:var(--dim);font-family:monospace;text-align:right;margin-top:2px}
+.api-ctr b{color:var(--muted)}
+.card{background:var(--card);border-radius:12px;padding:16px;border:1px solid var(--border);margin-bottom:14px}
+.fields{display:flex;flex-wrap:wrap;gap:10px}
+.field{flex:1 1 120px;min-width:100px}
+.field label{color:var(--muted);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;display:block}
+.field input{background:var(--input);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:8px 10px;font-size:13px;width:100%;outline:none;transition:border-color .15s}
+.field input:focus{border-color:var(--accent)}
+.btn-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.btn{padding:10px 20px;font-size:14px;font-weight:600;border:none;border-radius:8px;cursor:pointer;transition:all .15s}
+.btn-primary{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;box-shadow:0 4px 16px rgba(59,130,246,.25);flex:1}
+.btn-primary:hover{box-shadow:0 6px 24px rgba(59,130,246,.35)}
+.btn-primary:active{transform:scale(.98)}
+.btn-secondary{background:var(--border);color:var(--text);flex:0 0 auto}
+.btn-secondary:hover{background:#475569}
+.btn:disabled{opacity:.4;cursor:default}
+.btn-green{background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff;box-shadow:0 4px 16px rgba(34,197,94,.25)}
+.btn-green:hover{box-shadow:0 6px 24px rgba(34,197,94,.35)}
+
+/* Step 2: trim picker */
+.step2{display:none}
+.step2 h3{font-size:14px;font-weight:700;color:var(--text);margin-bottom:4px}
+.step2 .hint{font-size:12px;color:var(--dim);margin-bottom:10px;line-height:1.5}
+.trim-grid{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px}
+.tc{padding:8px 14px;border-radius:8px;border:2px solid var(--border);cursor:pointer;transition:all .15s;user-select:none;font-size:13px;font-weight:500;color:var(--muted)}
+.tc:hover{border-color:var(--dim);color:var(--text)}
+.tc.on{border-color:var(--green);background:#22c55e12;color:var(--green)}
+.kw-section{margin-bottom:14px}
+.kw-section label{color:var(--muted);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;display:block}
+.kw-section input{background:var(--input);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:8px 10px;font-size:13px;width:100%;max-width:400px;outline:none}
+.kw-section input:focus{border-color:var(--accent)}
+.kw-section .kw-hint{font-size:11px;color:var(--dark);margin-top:4px}
+.cost-box{font-size:12px;color:var(--muted);margin-bottom:12px;padding:10px 14px;background:var(--bg);border-radius:8px;border:1px solid var(--border);line-height:1.6}
+.cost-box b{color:#60a5fa}
+.cost-box .trims-list{color:var(--green);font-weight:600}
+
+/* Sources */
+.sources-section h3{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--dim);margin-bottom:8px}
+.source-grid{display:flex;flex-wrap:wrap;gap:6px}
+.sc{display:flex;align-items:center;gap:5px;padding:5px 12px;border-radius:8px;border:1px solid var(--border);background:var(--card);cursor:pointer;font-size:12px;font-weight:500;transition:all .15s;user-select:none}
+.sc:hover{border-color:var(--dim)}
+.sc.on{border-color:var(--sclr);background:color-mix(in srgb,var(--sclr) 12%,transparent)}
+.sc.on .sn{color:var(--sclr)}
+.sc input{display:none}
+.sc .sd{width:8px;height:8px;border-radius:50%;background:var(--border);transition:background .15s}
+.sc.on .sd{background:var(--sclr)}
+.sn{color:var(--muted);transition:color .15s}
+.sa{display:flex;gap:8px;margin-top:8px}
+.sa button{background:none;border:none;color:var(--dim);font-size:11px;cursor:pointer;text-decoration:underline}
+.sl{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.sl a{border:1px solid var(--border);border-radius:6px;padding:5px 12px;font-size:12px;color:var(--muted);transition:all .15s}
+.sl a:hover{border-color:var(--accent);color:var(--accent)}
+
+/* Filters */
+.fb{display:none;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:14px;padding:12px 14px;background:var(--card);border:1px solid var(--border);border-radius:10px}
+.fb label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--dim);margin-right:2px}
+.fb select,.fb input{background:var(--input);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:5px 8px;font-size:12px;outline:none}
+.fb select{min-width:100px}
+.fb input{width:130px}
+.fb .sp{flex:1}
+.fb .ct{font-size:13px;color:var(--muted)}
+.fb .ct b{color:var(--text)}
+
+/* Results */
+.rg{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:12px}
+.li{background:var(--card);border-radius:10px;overflow:hidden;border:1px solid var(--border);display:flex;flex-direction:column;transition:border-color .15s}
+.li:hover{border-color:#475569}
+.li.tgt{border-color:var(--green);border-width:2px}
+.li .ph{height:200px;overflow:hidden;background:#0f172a}
+.li .ph img{width:100%;height:100%;object-fit:cover}
+.li .ph .ni{display:flex;align-items:center;justify-content:center;height:100%;color:var(--dark);font-size:13px}
+.li .bd{padding:14px;flex:1;display:flex;flex-direction:column}
+.li .tp{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:6px}
+.li .tt{font-size:15px;font-weight:700;color:#f1f5f9}
+.li .tr{font-size:12px;margin-top:2px}
+.li .tr.hit{color:var(--green);font-weight:600}
+.li .tr.miss{color:var(--muted)}
+.li .pr{font-size:20px;font-weight:700;color:#60a5fa;white-space:nowrap}
+.li .sp2{display:flex;gap:10px;font-size:12px;color:var(--muted);margin-bottom:8px;flex-wrap:wrap}
+.li .dl{font-size:12px;color:var(--dim);margin-top:auto;padding-top:6px}
+.li .dl p{margin:1px 0}
+.li .vn{font-family:monospace;font-size:10px;color:var(--dark)}
+.fl{display:flex;gap:4px;flex-wrap:wrap;margin-top:10px}
+.fl a{flex:1;text-align:center;padding:7px 4px;border-radius:5px;font-size:11px;font-weight:600;transition:all .15s;min-width:60px;border:1px solid var(--border)}
+.fl a:hover{opacity:.8;transform:translateY(-1px)}
+.ld{text-align:center;padding:60px 20px;color:var(--dim)}
+.ld .sp{width:36px;height:36px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 14px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.em{text-align:center;padding:40px 20px;color:var(--dim);font-size:14px}
+footer{text-align:center;padding:20px;color:#1e293b;font-size:10px;font-family:monospace}
+</style>
+</head>
+<body>
+<header>
+  <div class="hdr">
+    <div><h1>CarScout</h1><p class="sub">Search &amp; browse used car listings across all dealers</p></div>
+    <div><span class="ver">v3.08</span><div class="api-ctr">Auto.dev: <b id="adCount">0</b> · Claude: <b id="clCount">0</b></div></div>
+  </div>
+</header>
+<div class="wrap">
+
+  <!-- Step 1 -->
+  <div class="card">
+    <div class="fields">
+      <div class="field"><label>Make</label><input id="make" value="Toyota"></div>
+      <div class="field"><label>Model</label><input id="model" value="Tacoma"></div>
+      <div class="field"><label>Year Min</label><input id="yearMin" value="2024"></div>
+      <div class="field"><label>Year Max</label><input id="yearMax" value="2026"></div>
+      <div class="field"><label>Price Min</label><input id="priceMin" value="" placeholder="$"></div>
+      <div class="field"><label>Price Max</label><input id="priceMax" value="" placeholder="$"></div>
+      <div class="field"><label>Max Miles</label><input id="mileageMax" value="" placeholder="e.g. 30000"></div>
+      <div class="field"><label>Zip Code</label><input id="zip" value="32514"></div>
+      <div class="field"><label>Radius (mi)</label><input id="distance" value="250"></div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="scanBtn" onclick="doStep1()">Step 1: Get All Trims for This Vehicle</button>
+      <button class="btn btn-secondary" onclick="clearAll()">Clear</button>
+    </div>
+  </div>
+
+  <!-- Step 2 -->
+  <div class="card step2" id="step2">
+    <h3 id="s2title"></h3>
+    <p class="hint">Click trims to select/deselect. Add an optional keyword to narrow results further (e.g. "4x4", "manual", "sunroof").</p>
+    <div class="trim-grid" id="trimGrid"></div>
+
+    <div class="kw-section">
+      <label>Optional Keyword (applied server-side to reduce results)</label>
+      <input id="serverKw" placeholder='e.g. "4x4" or "leather" — leave blank for all'>
+      <p class="kw-hint">This keyword is AND'd with each trim search to further limit API results.</p>
+    </div>
+
+    <div class="cost-box" id="costBox"></div>
+    <div class="btn-row">
+      <button class="btn btn-green" id="fetchBtn" onclick="doStep2()">Step 2: Fetch Listings</button>
+      <button class="btn btn-secondary" onclick="doStep1()">Re-scan Trims</button>
+    </div>
+  </div>
+
+  <!-- Sources -->
+  <div class="card sources-section">
+    <h3>Also Search These Sites Directly</h3>
+    <div class="source-grid" id="srcGrid"></div>
+    <div class="sa"><button onclick="togSrc(true)">Select All</button><button onclick="togSrc(false)">Deselect All</button></div>
+    <div class="sl" id="srcLinks" style="margin-top:10px"></div>
+    <button class="btn btn-secondary" style="margin-top:10px;padding:8px 16px;font-size:13px" onclick="openSel()">Open Selected Sites ↗</button>
+  </div>
+
+  <!-- Filters -->
+  <div class="fb" id="filterBar">
+    <label>Trim</label><select id="fTrim" onchange="renderF()"><option value="all">All</option></select>
+    <label>Color</label><select id="fColor" onchange="renderF()"><option value="all">All</option></select>
+    <label>Drivetrain</label><select id="fDrive" onchange="renderF()"><option value="all">All</option></select>
+    <label>Keyword</label><input id="fKw" placeholder="filter…" oninput="renderF()">
+    <label>Sort</label>
+    <select id="fSort" onchange="renderF()">
+      <option value="price_asc">Price ↑</option><option value="price_desc">Price ↓</option>
+      <option value="miles_asc">Miles ↑</option><option value="year_desc">Newest</option>
+      <option value="dist_asc">Nearest</option>
+    </select>
+    <div class="sp"></div>
+    <div class="ct" id="cntLbl"></div>
+  </div>
+
+  <div id="output"></div>
+</div>
+<footer>CarScout v3.08</footer>
+
+<script>
+const API=location.hostname==="localhost"||location.hostname==="127.0.0.1"?"http://localhost:8888":"";
+const FIELDS=["make","model","yearMin","yearMax","priceMin","priceMax","mileageMax","zip","distance"];
+const TGT=["trd pro","sport premium","off-road premium","off road premium","limited","trailhunter"];
+const enc=s=>encodeURIComponent(s||""),low=s=>(s||"").toLowerCase().replace(/\s+/g,"-");
+const g=k=>document.getElementById(k).value.trim();
+const fmt$=v=>v?"$"+Number(v).toLocaleString():"N/A";
+const fmtMi=v=>v?Number(v).toLocaleString()+" mi":"N/A";
+
+let allRes=[],adCalls=0,clCalls=0,selTrims=new Set();
+const phCache={};
+
+function bumpAd(){adCalls++;document.getElementById("adCount").textContent=adCalls}
+function bumpCl(){clCalls++;document.getElementById("clCount").textContent=clCalls}
+
+function bp(){
+  const p=new URLSearchParams(),mk=g("make"),md=g("model");
+  if(mk)p.set("vehicle.make",mk);if(md)p.set("vehicle.model",md);
+  const y1=g("yearMin"),y2=g("yearMax");
+  if(y1||y2)p.set("vehicle.year",`${y1||"2000"}-${y2||"2030"}`);
+  const p1=g("priceMin"),p2=g("priceMax");
+  if(p1||p2)p.set("retailListing.price",`${p1||"1"}-${p2||"999999"}`);
+  const mi=g("mileageMax");if(mi)p.set("retailListing.miles",`0-${mi}`);
+  const z=g("zip"),d=g("distance");
+  if(z){p.set("zip",z);p.set("distance",d||"250")}
+  p.set("limit","100");return p;
+}
+
+/* ═══ STEP 1: Claude → get all trims ═══ */
+async function doStep1(){
+  const btn=document.getElementById("scanBtn");
+  btn.disabled=true;btn.textContent="Asking Claude for trims…";
+  document.getElementById("output").innerHTML=`<div class="ld"><div class="sp"></div>Claude is looking up all trims for ${g("yearMin")}–${g("yearMax")} ${g("make")} ${g("model")}…</div>`;
+  document.getElementById("filterBar").style.display="none";
+  document.getElementById("step2").style.display="none";
+
+  try{
+    const params=new URLSearchParams({make:g("make"),model:g("model"),yearMin:g("yearMin"),yearMax:g("yearMax")});
+    const res=await fetch(`${API}/api/trims?${params}`);
+    bumpCl();
+    if(!res.ok){const t=await res.text();throw new Error(JSON.parse(t).error||`Error ${res.status}`)}
+    const json=await res.json();
+    const trims=json.trims||[];
+
+    if(!trims.length) throw new Error("No trims returned. Check ANTHROPIC_API_KEY is set.");
+
+    // Pre-select target trims
+    selTrims=new Set();
+    trims.forEach(t=>{if(TGT.some(x=>t.toLowerCase().includes(x)))selTrims.add(t)});
+
+    // Render
+    document.getElementById("step2").style.display="block";
+    document.getElementById("s2title").textContent=`${trims.length} trim levels for ${g("yearMin")}${g("yearMax")&&g("yearMax")!==g("yearMin")?"-"+g("yearMax"):""} ${g("make")} ${g("model")}`;
+
+    const grid=document.getElementById("trimGrid");
+    grid.innerHTML="";
+
+    // "All" chip
+    mkChip(grid,"__ALL__","All Trims (no filter)","1 call, 100 max",()=>{
+      selTrims.clear();refreshChips();updateCost();
+    });
+
+    trims.forEach(t=>{
+      mkChip(grid,t,t,"",()=>{
+        if(selTrims.has(t))selTrims.delete(t);else selTrims.add(t);
+        refreshChips();updateCost();
+      });
+    });
+
+    refreshChips();updateCost();
+
+    document.getElementById("output").innerHTML=`<div class="em">
+      <p style="color:var(--text);font-size:15px;margin-bottom:6px">Select your trims above, add optional keyword, then fetch.</p>
+    </div>`;
+
+  }catch(err){
+    document.getElementById("output").innerHTML=`<div class="em"><p style="color:var(--red)">${err.message}</p>
+      <p style="margin-top:8px">Set <code>ANTHROPIC_API_KEY</code> in Netlify env vars.</p></div>`;
+  }finally{btn.disabled=false;btn.textContent="Step 1: Get All Trims for This Vehicle"}
+}
+
+function mkChip(parent,id,label,sub,onClick){
+  const d=document.createElement("div");
+  d.className="tc";d.dataset.id=id;
+  d.innerHTML=label+(sub?`<span style="font-size:11px;color:var(--dim);margin-left:4px">(${sub})</span>`:"");
+  d.addEventListener("click",onClick);
+  parent.appendChild(d);
+}
+
+function refreshChips(){
+  document.querySelectorAll("#trimGrid .tc").forEach(c=>{
+    const id=c.dataset.id;
+    c.classList.toggle("on",id==="__ALL__"?selTrims.size===0:selTrims.has(id));
+  });
+}
+
+function updateCost(){
+  const n=selTrims.size;const kw=g("serverKw");
+  const kwNote=kw?` + keyword "<b>${kw}</b>"`:"";
+  document.getElementById("costBox").innerHTML=n===0
+    ?`Will fetch: <b>All trims</b>${kwNote} → <b>1</b> Auto.dev API call`
+    :`Will fetch: <span class="trims-list">${[...selTrims].join(", ")}</span>${kwNote}<br>→ <b>${n}</b> Auto.dev API call${n>1?"s":""} (up to ${n*100} results)`;
+}
+
+document.getElementById("serverKw").addEventListener("input",updateCost);
+
+/* ═══ STEP 2: Fetch listings ═══ */
+async function doStep2(){
+  const btn=document.getElementById("fetchBtn");
+  btn.disabled=true;btn.textContent="Fetching…";
+  const isAll=selTrims.size===0;
+  const trims=isAll?[null]:[...selTrims];
+  const kw=g("serverKw");
+
+  document.getElementById("output").innerHTML=`<div class="ld"><div class="sp"></div>Fetching listings…</div>`;
+  document.getElementById("filterBar").style.display="none";
+
+  try{
+    let merged=[];
+    for(let i=0;i<trims.length;i++){
+      const trim=trims[i];
+      const ldr=document.querySelector(".ld");
+      if(ldr)ldr.innerHTML=`<div class="sp"></div>Fetching${trim?" <b>"+trim+"</b>":""}${kw?" + \""+kw+"\"":""}  (${i+1}/${trims.length})… ${merged.length} so far`;
+
+      const params=bp();
+      // Combine trim + keyword into one wildcard if both present
+      if(trim&&kw) params.set("vehicle.trim",`*${trim}*`);
+      else if(trim) params.set("vehicle.trim",`*${trim}*`);
+      else if(kw) params.set("vehicle.trim",`*${kw}*`);
+
+      const res=await fetch(`${API}/api/listings?${params}`);bumpAd();
+      if(!res.ok){const t=await res.text();throw new Error(JSON.parse(t).error||`Error ${res.status}`)}
+      const json=await res.json();
+      merged=merged.concat(Array.isArray(json.data)?json.data:[]);
+    }
+
+    const seen=new Set();
+    allRes=merged.filter(l=>{const v=l?.vin;if(!v||seen.has(v))return false;seen.add(v);return true});
+
+    popF("fTrim",allRes.map(l=>l?.vehicle?.trim));
+    popF("fColor",allRes.map(l=>l?.vehicle?.exteriorColor));
+    popF("fDrive",allRes.map(l=>l?.vehicle?.drivetrain));
+    renderF();
+
+  }catch(err){
+    document.getElementById("output").innerHTML=`<div class="em"><p style="color:var(--red)">${err.message}</p></div>`;
+  }finally{btn.disabled=false;btn.textContent="Step 2: Fetch Listings"}
+}
+
+function popF(id,vals){
+  const el=document.getElementById(id),a=vals.filter(Boolean),s=[...new Set(a)].sort();
+  el.innerHTML=`<option value="all">All (${s.length})</option>`+s.map(v=>`<option value="${v}">${v} (${a.filter(x=>x===v).length})</option>`).join("");
+  el.value="all";
+}
+
+function renderF(){
+  let f=[...allRes];
+  const tv=document.getElementById("fTrim").value;
+  const cv=document.getElementById("fColor").value;
+  const dv=document.getElementById("fDrive").value;
+  const sv=document.getElementById("fSort").value;
+  const kw=(document.getElementById("fKw").value||"").toLowerCase();
+  if(tv!=="all")f=f.filter(l=>(l?.vehicle?.trim||"")===tv);
+  if(cv!=="all")f=f.filter(l=>(l?.vehicle?.exteriorColor||"")===cv);
+  if(dv!=="all")f=f.filter(l=>(l?.vehicle?.drivetrain||"")===dv);
+  if(kw)f=f.filter(l=>[l?.vehicle?.trim,l?.vehicle?.engine,l?.vehicle?.drivetrain,l?.vehicle?.exteriorColor,l?.retailListing?.dealerName,l?.retailListing?.description,l?.description,...(l?.vehicle?.features||[])].filter(Boolean).join(" ").toLowerCase().includes(kw));
+  f.sort((a,b)=>{const pa=a?.retailListing?.price??999999,pb=b?.retailListing?.price??999999,ma=a?.retailListing?.miles??999999,mb=b?.retailListing?.miles??999999,ya=a?.vehicle?.year??0,yb=b?.vehicle?.year??0,da=a?.retailListing?.distanceMiles??999999,db=b?.retailListing?.distanceMiles??999999;switch(sv){case"price_asc":return pa-pb;case"price_desc":return pb-pa;case"miles_asc":return ma-mb;case"year_desc":return yb-ya;case"dist_asc":return da-db;default:return 0}});
+  document.getElementById("filterBar").style.display="flex";
+  document.getElementById("cntLbl").innerHTML=`<b>${allRes.length}</b> fetched · <b>${f.length}</b> shown`;
+  renderCards(f);
+}
+
+/* ── Photos ── */
+function gPh(l){const p=[l?.media?.photos?.[0]?.url,l?.media?.photos?.[0],l?.media?.photo?.url,l?.photos?.[0]?.url,l?.photos?.[0],l?.imageUrl,l?.retailListing?.photoUrl,l?.retailListing?.imageUrl,l?.vehicle?.photoUrl,l?.vehicle?.imageUrl];for(const c of p)if(typeof c==="string"&&c.startsWith("http"))return c;return null}
+async function ldPh(vin,img,no){
+  if(!vin){no.textContent="No photo";return}
+  if(phCache[vin]){img.src=phCache[vin];img.style.display="";no.style.display="none";return}
+  try{const r=await fetch(`${API}/api/photo/${vin}`);bumpAd();if(!r.ok){no.textContent="No photo";return}const j=await r.json();const u=j?.data?.retail||j?.data?.wholesale||[];if(u.length){phCache[vin]=u[0];img.src=u[0];img.style.display="";no.style.display="none"}else no.textContent="No photo"}catch{no.textContent="No photo"}
+}
+
+function vl(vin,yr,mk,md){if(!vin)return"";const q=enc(`${yr} ${mk} ${md} VIN ${vin} for sale`);const L=[{n:"AutoTrader",c:"#E8364A",u:`https://www.autotrader.com/cars-for-sale/vehicledetails.xhtml?listingTypes=USED&vin=${vin}`},{n:"CarGurus",c:"#6C3EC1",u:`https://www.cargurus.com/Cars/link/${vin}`},{n:"Cars.com",c:"#0070C0",u:`https://www.cars.com/vehicledetail/${vin}/`},{n:"Google",c:"#34A853",u:`https://www.google.com/search?q=${q}`}];return`<div class="fl">${L.map(l=>`<a href="${l.u}" target="_blank" rel="noopener" style="background:${l.c}18;color:${l.c};border-color:${l.c}44">${l.n}</a>`).join("")}</div>`}
+
+function renderCards(list){
+  if(!list.length){document.getElementById("output").innerHTML=`<div class="em">No listings match.</div>`;return}
+  document.getElementById("output").innerHTML=`<div class="rg">${list.map((l,i)=>{
+    const v=l?.vehicle||{},r=l?.retailListing||{};
+    const price=r.price||l?.price,miles=r.miles||l?.mileage;
+    const tl=(v.trim||"").toLowerCase(),hit=TGT.some(t=>tl.includes(t));
+    const dlr=r.dealerName||l?.dealer?.name||"",city=r.city||r.dealerCity||"",st=r.state||r.dealerState||"";
+    const dist=r.distanceMiles,vin=l?.vin||"";
+    const url=r.url||r.listingUrl||r.dealerUrl||l?.url||l?.listingUrl||"";
+    const ph=gPh(l);
+    return`<div class="li${hit?" tgt":""}"><div class="ph"><img id="p${i}" src="${ph||""}" loading="lazy" style="${ph?"":"display:none"}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><div class="ni" id="n${i}" style="display:${ph?"none":"flex"}">Loading…</div></div><div class="bd"><div class="tp"><div><div class="tt">${v.year||""} ${v.make||""} ${v.model||""}</div><div class="tr ${hit?"hit":"miss"}">${v.trim||"—"}</div></div><div class="pr">${fmt$(price)}</div></div><div class="sp2"><span>${fmtMi(miles)}</span>${v.drivetrain?`<span>${v.drivetrain}</span>`:""}${v.engine?`<span>${v.engine}</span>`:""}${v.exteriorColor?`<span>🎨 ${v.exteriorColor}</span>`:""}${dist!=null?`<span>📍 ${Math.round(dist)} mi</span>`:""}</div><div class="dl">${dlr?`<p>${dlr}</p>`:""}${city||st?`<p>${[city,st].filter(Boolean).join(", ")}</p>`:""}${vin?`<p class="vn">VIN: ${vin}</p>`:""}</div>${url?`<a href="${url}" target="_blank" rel="noopener" style="display:block;text-align:center;margin-top:10px;background:var(--accent);color:#fff;padding:8px;border-radius:6px;font-size:13px;font-weight:600">View Listing ↗</a>`:""}${vl(vin,v.year,v.make,v.model)}</div></div>`;
+  }).join("")}</div>`;
+  list.forEach((l,i)=>{if(!gPh(l)&&l?.vin){const img=document.getElementById(`p${i}`),no=document.getElementById(`n${i}`);if(img&&no)ldPh(l.vin,img,no)}});
+}
+
+/* ── Sites ── */
+const SITES=[
+  {id:"at",n:"AutoTrader",c:"#E8364A",on:true,b:v=>{let u=`https://www.autotrader.com/cars-for-sale/all-cars/${low(v.make)}/${low(v.model)}${v.zip?"/"+v.zip:""}`;const q=[`searchRadius=${v.distance||100}`];if(v.yearMin)q.push(`startYear=${v.yearMin}`);if(v.yearMax)q.push(`endYear=${v.yearMax}`);if(v.priceMax)q.push(`maxPrice=${v.priceMax}`);if(v.priceMin)q.push(`minPrice=${v.priceMin}`);if(v.mileageMax)q.push(`maxMileage=${v.mileageMax}`);return u+"?"+q.join("&")}},
+  {id:"cg",n:"CarGurus",c:"#6C3EC1",on:true,b:v=>{const q=[`showNegotiable=true`,`sortDir=ASC`,`sortType=PRICE`];if(v.yearMin)q.push(`startYear=${v.yearMin}`);if(v.yearMax)q.push(`endYear=${v.yearMax}`);if(v.priceMax)q.push(`maxPrice=${v.priceMax}`);if(v.priceMin)q.push(`minPrice=${v.priceMin}`);if(v.mileageMax)q.push(`maxMileage=${v.mileageMax}`);if(v.distance)q.push(`distance=${v.distance}`);if(v.zip)q.push(`zip=${v.zip}`);return`https://www.cargurus.com/Cars/inventorylisting/viewDetailsFilterViewInventoryListing.action?`+q.join("&")}},
+  {id:"cc",n:"Cars.com",c:"#0070C0",on:true,b:v=>{const q=[`stock_type=all`,`makes[]=${enc(v.make)}`,`models[]=${enc(v.make)}-${enc(v.model)}`,`maximum_distance=${v.distance||100}`];if(v.yearMin)q.push(`year_min=${v.yearMin}`);if(v.yearMax)q.push(`year_max=${v.yearMax}`);if(v.priceMax)q.push(`list_price_max=${v.priceMax}`);if(v.priceMin)q.push(`list_price_min=${v.priceMin}`);if(v.mileageMax)q.push(`mileage_max=${v.mileageMax}`);if(v.zip)q.push(`zip=${v.zip}`);return`https://www.cars.com/shopping/results/?`+q.join("&")}},
+  {id:"cv",n:"Carvana",c:"#00AEF0",on:true,b:v=>{let u=`https://www.carvana.com/cars/${low(v.make)}-${low(v.model)}`;const q=[];if(v.yearMin||v.yearMax)q.push(`year=${v.yearMin||""}-${v.yearMax||""}`);if(v.priceMin||v.priceMax)q.push(`price=${v.priceMin||""}-${v.priceMax||""}`);if(v.mileageMax)q.push(`mileage=-${v.mileageMax}`);return q.length?u+"?"+q.join("&"):u}},
+  {id:"cm",n:"CarMax",c:"#2962FF",on:true,b:v=>{let u=`https://www.carmax.com/cars/${low(v.make)}/${low(v.model)}`;const q=[];if(v.yearMin||v.yearMax)q.push(`year=${v.yearMin||""}-${v.yearMax||""}`);if(v.priceMin||v.priceMax)q.push(`price=${v.priceMin||""}-${v.priceMax||""}`);if(v.mileageMax)q.push(`mileage=-${v.mileageMax}`);return q.length?u+"?"+q.join("&"):u}},
+  {id:"tc",n:"TrueCar",c:"#00897B",on:true,b:v=>{let u=`https://www.truecar.com/used-cars-for-sale/listings/${low(v.make)}/${low(v.model)}/`;if(v.yearMin||v.yearMax)u+=`year-${v.yearMin||"2000"}-${v.yearMax||"max"}/`;if(v.priceMin||v.priceMax)u+=`price-${v.priceMin||"0"}-${v.priceMax||"max"}/`;const q=[];if(v.zip)q.push(`searchRadius=${v.distance||100}`);return q.length?u+"?"+q.join("&"):u}},
+  {id:"fb",n:"Facebook",c:"#1877F2",on:true,b:v=>{const q=[`minYear=${v.yearMin||""}`,`maxYear=${v.yearMax||""}`,`make=${enc(v.make)}`,`model=${enc(v.model)}`];if(v.priceMax)q.push(`maxPrice=${v.priceMax}`);if(v.priceMin)q.push(`minPrice=${v.priceMin}`);if(v.mileageMax)q.push(`maxMileage=${v.mileageMax}`);return`https://www.facebook.com/marketplace/category/vehicles?`+q.join("&")}},
+  {id:"ed",n:"Edmunds",c:"#FF6D00",on:true,b:v=>{const q=[`make=${enc(v.make)}`,`model=${enc(v.make)}|${enc(v.model)}`];if(v.yearMin)q.push(`year=${v.yearMin}-${v.yearMax||v.yearMin}`);if(v.zip)q.push(`zip=${v.zip}`);if(v.distance)q.push(`radius=${v.distance}`);return`https://www.edmunds.com/inventory/srp.html?`+q.join("&")}},
+];
+function renSrc(){document.getElementById("srcGrid").innerHTML=SITES.map(s=>`<label class="sc${s.on?" on":""}" style="--sclr:${s.c}" onclick="setTimeout(upSrc,0)"><input type="checkbox" ${s.on?"checked":""} onchange="SITES.find(x=>x.id==='${s.id}').on=this.checked"><span class="sd"></span><span class="sn">${s.n}</span></label>`).join("");upLnk()}
+function upSrc(){document.querySelectorAll(".sc").forEach(el=>el.classList.toggle("on",el.querySelector("input").checked));upLnk()}
+function togSrc(on){SITES.forEach(s=>s.on=on);document.querySelectorAll(".sc input").forEach(cb=>cb.checked=on);upSrc()}
+function gp(){const v={};FIELDS.forEach(k=>v[k]=g(k));return v}
+function upLnk(){const v=gp();document.getElementById("srcLinks").innerHTML=SITES.filter(s=>s.on).map(s=>`<a href="${s.b(v)}" target="_blank" rel="noopener" style="border-color:${s.c}44;color:${s.c}">${s.n} ↗</a>`).join("")}
+function openSel(){const v=gp();SITES.filter(s=>s.on).forEach((s,i)=>setTimeout(()=>window.open(s.b(v),"_blank"),i*250))}
+
+function clearAll(){
+  FIELDS.forEach(k=>document.getElementById(k).value="");
+  document.getElementById("make").value="Toyota";document.getElementById("model").value="Tacoma";
+  document.getElementById("yearMin").value="2024";document.getElementById("yearMax").value="2026";
+  document.getElementById("zip").value="32514";document.getElementById("distance").value="250";
+  document.getElementById("output").innerHTML="";
+  document.getElementById("filterBar").style.display="none";
+  document.getElementById("step2").style.display="none";
+}
+
+FIELDS.forEach(k=>{document.getElementById(k).addEventListener("keydown",e=>{if(e.key==="Enter")doStep1()});document.getElementById(k).addEventListener("input",upLnk)});
+renSrc();
+</script>
+</body>
+</html>
